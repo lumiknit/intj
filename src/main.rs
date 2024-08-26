@@ -1,3 +1,6 @@
+pub mod cli;
+pub mod token;
+
 fn main() {
-    println!("Hello, world!");
+    let args = cli::parse_args();
 }
