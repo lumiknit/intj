@@ -1,5 +1,16 @@
 use super::file::Pos;
 
+pub enum ExprListType {
+    /// Codes
+    Code,
+
+    /// Array
+    Array,
+
+    /// Object
+    Object,
+}
+
 pub enum ExprBase<E> {
     /// Identifier
     Id(String),
@@ -19,17 +30,8 @@ pub enum ExprBase<E> {
     /// Regular expression literal
     Regexp(String),
 
-    /// Function
-    Fn(Vec<E>),
-
-    /// Array
-    Array(Vec<E>),
-
-    /// Object
-    Object(Vec<(String, E)>),
-
-    /// Comma / newline separator
-    Comma,
+    /// Expression List
+    List(ExprListType, Vec<E>),
 }
 
 pub struct Expr {
