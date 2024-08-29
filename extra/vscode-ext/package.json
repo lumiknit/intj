@@ -1,0 +1,25 @@
+{
+  "name": "intj",
+  "displayName": "intj",
+  "description": "lumiknit's INTJ language support",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.92.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [{
+      "id": "intj",
+      "aliases": ["intj", "intj"],
+      "extensions": [".intj"],
+      "configuration": "./language-configuration.json"
+    }],
+    "grammars": [{
+      "language": "intj",
+      "scopeName": "source.intj",
+      "path": "./syntaxes/intj.tmLanguage.json"
+    }]
+  }
+}

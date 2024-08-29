@@ -1,0 +1,67 @@
+/// INTJ pest grammar (PEG)
+
+/// Root rule. (whole file)
+root = {
+    SOI
+    ~ body
+    ~ EOI
+}
+
+body = _{ expr* }
+
+expr = { line_separator | list | string_literal | number | ident }
+
+// Seperator
+
+line_separator = {
+  ("," | ( line_comment? ~ "\n") )+
+}
+line_comment = @{ ("//" | "#!") ~ (!"\n" ~ ANY)* }
+
+// List
+
+list = { fn | array | object }
+
+fn = { fn_open ~ body ~ fn_close }
+object = { obj_open ~ body ~ obj_close }
+array = { arr_open ~ body ~ arr_close }
+
+// Numeric value
+number = @{ number_sgn? ~ number_dec ~ number_exp? }
+number_sgn = @{ "+" | "-" }
+number_dec = @{ ASCII_DIGIT+ ~ ("." ~ ASCII_DIGIT*)? }
+number_oct = @{ "0o" ~ ASCII_OCT_DIGIT+ }
+number_hex = @{ "0x" ~ ASCII_HEX_DIGIT+ }
+number_exp = @{ ("e" | "E") ~ ("-" | "+")? ~ ASCII_DIGIT+ }
+
+// String literal
+string_literal = { (string_sq | string_dq) ~ symbol_mark? }
+
+string_sq = ${"\'" ~ string_contents_sq ~ "\'"}
+string_contents_sq = @{ (!"\'" ~ (escaped_char | non_escaped_char))* }
+string_dq = ${"\"" ~ string_contents_dq ~ "\""}
+string_contents_dq = @{ (!"\"" ~ (escaped_char | non_escaped_char))* }
+escaped_char = _{ "\\" ~ ANY }
+non_escaped_char = _{ !"\\" ~ ANY }
+
+// Identifier
+ident = @{ id_char+ }
+id_char = _{ !reserved_char ~ ANY }
+
+
+reserved_char = _{ ('\x00'..' ') | "(" | ")" | "{" | "}" | "[" | "]" | "," | ":" }
+
+// Symbol mark
+symbol_mark = @{ ":" }
+
+// Reserved characters
+
+fn_open = { "(" }
+fn_close = { ")" }
+obj_open = { "{" }
+obj_close = { "}" }
+arr_open = { "[" }
+arr_close = { "]" }
+
+COMMENT = _{ "/*" ~ (!"*/" ~ ANY)* ~ "*/" }
+WHITESPACE = _{ " " | "\t" | "\r" }
