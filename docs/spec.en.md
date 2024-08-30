@@ -1,4 +1,5 @@
 # INTJ Specification Version 0
+
 ## -1. Preliminary
 
 ### Stack Notation
