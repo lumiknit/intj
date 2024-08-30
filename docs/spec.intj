@@ -155,6 +155,11 @@ c = 3
 a = 42
 print a // Pushes a (=42) and prints it, resulting in 42 being printed.
 
+// Notes for identifiers:
+// - Identifiers are case-insensitive.
+// - In most cases, the recommended style is snake case with lower cases, for every cases.
+// - underscore at the beginning or end of the identifier is allowed, but not recommended.
+
 // 1-6. Functions
 // Functions are simply lists of commands.
 // You can define a function by enclosing commands in `()`. For example:
@@ -243,6 +248,7 @@ array = (
 	sub = "subdir/sub_module.intj" // Import subdir/sub_module.intj, bind to 'sub'
 	sub = "subdir/file2.intj" // You can overwrite the module by importing again.
 	full_dir = "my_dir/" // Import all .intj files in my_dir/
+	_ = "my_dir/overwirte.intj" // Can use without prefix.
 )
 
 // After the import, you can access the module binding with prefix.
@@ -258,6 +264,16 @@ full_dir.some_fn // Access 'some_fn' in some .intj file in my_dir/
 
 // You can see there may be some ambiguity in the module name.
 // .intj does not have a strict module system, so you need to be careful with the module name.
+
+// Note that the standard library is also a module, and it's path is "" (empty string).
+// In default, the standard library is imported as follows for every code:
+
+#(
+	std = ""
+	_ = ""
+)
+
+// In other words, you can access the standard library with the prefix 'std.', or without prefix.
 
 // 2-2. Notes on Modules
 
@@ -316,23 +332,60 @@ print
 
 // Even the INTJ is stack based language, each function call create a
 // stack frame in the separated call stack.
-// If you bind the value in the function, it's local to the function.
+// If you bind some value in function block, it'll be bound in the frame scope.
+
+// For example,
+a = "Hello"
+f = (
+	a = 42
+	b = 3
+	+ a b // Push 42 and 3, and add them.
+)
+f // Call f
+// In this case, when f is called, it'll create a new stack frame with 'a' and 'b'.
+// The 'a' in the top level is not affected.
+
+// Also, if you create a function in the function, the function will capture some variables.
+// For example,
+a = 42
+f = (
+	b = 3
+	(
+		+ a b // Push 42 and 3, and add them.
+	)
+)
+f // call f, the result is a function
+invoke // Invoke the result of f.
+
+// 2-4. Documentation comments.
+
+// Before the assignment, you can put a documentation comment, beginning with '///'.
+// You can access the documentation not only in many tools, but also in runtime.
+// For example, the function 'help' will show the documentation of some binding:
+
+help "f" // Show the documentation of 'f'
+help ["a", "b", "c"] // Show the documentation of binding "c" which in "b" which in "a"
+
+// This is implemented some 'magics', using std's reflect and runtime features.
+
+// Note that the documentation is binding to the last assignment of the next line.
+// For example,
+
+/// Hello!
+1 2 3 a= b= 42 "boom"
+
+// In this case, the documentation is bound to 'a', not 'b'.
+
+// A. Standard Library
 
 
-
-// 2-4. Docstring.
-
-
-// 3. Standard Library
+// B. Standard IO Library, and Async
 
 
-// 4. Standard IO Library, and Async
+// C. System-Dependent Features
 
 
-// 5. System-Dependent Features
-
-
-// 6. Example Programs
+// X. Example Programs
 
 /// Fibonacci Sequence
 /// n -- fib(n)
@@ -346,5 +399,23 @@ fibo = (
 		+ // Add them
 	)
 )
+help "fibo"
+print fibo 42
 
-# main "abc"
+/// Load environemnt path and execute
+/// file --- stdout stderr
+run_file = (file=
+	// Get environment path
+	env_path = getenv "PATH"
+	// Split the path
+	splitted = split env_path ":"
+	each splitted ( path= break=
+		// Construct the full path
+		full_path = join "/" [path, file]
+		if (file_exists full_path) (
+			// Execute the file
+			execute full_path
+			break
+		)
+	)
+)
