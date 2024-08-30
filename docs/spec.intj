@@ -1,0 +1,421 @@
+#!/usr/bin/env intj
+
+// INTJ Specification in code!
+
+
+// -1. Important Notes: Comments.
+
+// This is a line comment
+/// This is a document comment.
+/* Also, block comments */
+
+// Like other scripting languages, a shebang is treated as a comment.
+// For example, #! is not an issue.
+
+// -1-1. Stack Notation.
+// In this document, we denote the stack as [1, 2, 3], with the top of the stack at the leftmost element.
+// I will also use ellipses to skip some elements, like [1, 2, ..., 5, ...].
+
+
+// 0. What is INTJ?
+// Intelligent JSON (INTJ) is a simple language that accepts JSON.
+
+// * INTJ is stack-oriented.
+// The program uses a stack to store variables and other data.
+// Most keywords and functions manipulate the stack, primarily using the push operation.
+
+// * INTJ is dynamically typed.
+// Each cell in the stack can hold any type of data.
+
+// * INTJ accepts JSON.
+// Any valid JSON code is also valid INTJ code, which simply pushes a JSON object onto the stack.
+// INTJ is a superset of JSON, meaning each symbol in JSON has a slightly different meaning.
+
+// * Functions are first-class.
+// Functions are treated like any other value and can be pushed onto the stack.
+// They are essentially lists of commands.
+
+// * All bindings are immutable.
+// INTJ does not allow changing variable values, which makes programs more predictable and easier to debug.
+
+// Comments are ignored by the parser.
+
+
+// 1. Language Basics
+
+// INTJ is stack-oriented.
+// Keywords manipulate the stack, typically starting from the top and evaluating from right to left.
+
+// 1-1. Separator
+// In INTJ, newlines and commas (',') serve as separators.
+// The evaluation occurs from the top down and right to left.
+// Separators distinguish between different lines of code.
+
+// For example, consider the following code:
+1 2 3 4 5 6
+// This code evaluates from 6 to 1, resulting in the stack: [6, 5, 4, 3, 2, 1].
+// If you want to execute '4 5 6' first, followed by '1 2 3', you can use a separator:
+4 5 6, 1 2 3
+// or
+4 5 6
+1 2 3
+// This improves readability in real code.
+// For example, instead of writing:
+print square + 3 parse_int readline
+// You could write:
+readline  // Read a line first
+parse_int // Then parse it to an integer
++ 3       // Add 3
+square    // Calculate the square
+print     // Print the result!
+
+// 1-2. Literals
+// INTJ literals are based on JavaScript literals, excluding undefined.
+// Each atom pushes its literal onto the stack.
+
+true false null 42 "Hello, world!"
+
+// The above statements push literals onto the stack.
+// Due to evaluation order, the top of the stack is true.
+
+// Strings in INTJ are more flexible than in JSON. For example:
+'hello,\nworld!' // single quote
+"asd \a \022 " // Some C escape sequences are allowed.
+
+// 1-3. Symbols
+// Symbols are a special type of string bound to an integer.
+// They are used as keys in objects for fast equality comparisons.
+// The easiest way to define a symbol is to use `:` after a string.
+
+"hello": // => Symbol 'hello'
+'world': // => Symbol 'world'
+"good"  : // => Spaces between the string and colon are allowed.
+
+// You can also convert an identifier to a symbol by adding `:`.
+my-good-value: // => Symbol 'my-good-value'
+wow!ItWorks: // => Symbol 'wow!ItWorks'
+
+// To convert a symbol to an integer, or vice versa, use standard functions.
+
+// 1-4. Arrays and Objects
+
+// To create arrays and objects, use `[]` and `{}`.
+// You can use them just like in JSON. For example:
+
+[1, 3, 5] // => [1, 3, 5]
+
+{"a": 1, "b": 2} // => {a: 1, b: 2}
+
+// The key difference is that only brackets are special.
+// Commas are just separators, and colons convert the preceding string to a symbol.
+// You can omit or repeat commas or quotes, as shown:
+
+[1
+ 3
+ {
+	  header: "test",,, body: "test"
+ }]
+// => [1, 3, {header: "test", body: "test"}]
+// This demonstrates that INTJ also accepts JSON5 syntax or is even more flexible,
+// except newlines cannot be placed between quotes and colons in object keys.
+
+// I will explain how this works later.
+
+// 1-5. Identifiers and Functions
+// INTJ has a few reserved characters:
+// - Whitespaces, ',', ':', brackets '()[]{}', hash '#', quotes '"', ''', '`'.
+// Other than these, any character is valid in an identifier (as long as it's not a literal).
+
+hello world good! + ** test<-20 // All of these are valid identifiers.
+
+// To include special characters, use backticks.
+// Note that backticks do not allow newlines or backticks, and no escape sequences.
+`hello, world!` // => Identifier 'hello, world!'
+
+// You can bind a function to an identifier using `=`.
+
+a = 42
+b = "Hello, world!"
+c = [1, 2, 3] // Not recommended, but allowed.
++ = add // An identifier can look like an operator too.
+`abc=` = abc // Backticks are also allowed.
+
+// Note that binding values is not special. The `<ID> =` token pops a value and binds it.
+// For example, the following is also valid:
+a = b = c = 1 2 3
+// Meaning: push 3, 2, 1 onto the stack and then bind them to c, b, and a, respectively.
+// It is equivalent to:
+a = 1
+b = 2
+c = 3
+
+// If you bind a literal to an identifier, that identifier behaves like a function
+// that simply pushes the literal onto the stack.
+// For example:
+a = 42
+print a // Pushes a (=42) and prints it, resulting in 42 being printed.
+
+// Notes for identifiers:
+// - Identifiers are case-insensitive.
+// - In most cases, the recommended style is snake case with lower cases, for every cases.
+// - underscore at the beginning or end of the identifier is allowed, but not recommended.
+
+// 1-6. Functions
+// Functions are simply lists of commands.
+// You can define a function by enclosing commands in `()`. For example:
+
+pop_and_double = (* 2 pop)
+swap = (
+	a = b = // The first line executes first, popping values to b and a
+	a b // Then pushes b and a
+)
+construct_json = ({
+	"hello": "world"
+})
+
+// (...) will push the defined function onto the stack.
+// Once defined, invoking a function is as simple as stating its name.
+construct_json // This invokes ({"hello": "world"}) and pushes the object onto the stack.
+pop_and_double 3 2 // Pushes 2 and 3, then invokes (* 2 pop), resulting in 4.
+
+// 1-7. How Arrays and Objects Work
+
+// Let's explore how arrays and objects operate.
+// In INTJ, arrays and objects are syntactic sugar for creating these structures using functions.
+// For example, you can create an array like this:
+array (1, 2, 3) // => Equivalent to [1, 2, 3]
+// Breaking this down step by step:
+// - First, a function is pushed onto the stack.
+//   - The function pushes literals in the order of 3, 2, 1.
+// - Next, the 'array' function is invoked.
+
+// The 'array' function specifically handles arrays.
+// It works as follows:
+array = (
+	value_fn = // Pop the given value-push function
+	push_array_start_mark // Push the start marker for the array
+	value_fn // Push values by invoking the function
+	reduce_stack_to_array_until_start_mark // Convert the stack to an array until the start marker
+)
+// Thus, as long as the start marker isn't corrupted, you can perform various operations while constructing the array.
+// For example, mixing operations within the array:
+[
+	+ 32 10 // This effectively pushes 42
+	trim "  hello world " // This effectively pushes "hello world"
+]
+
+// Objects function similarly.
+// While the array only takes values, the object takes key-value pairs with symbols.
+// For example:
+{
+	"number": 42,
+	value: 5
+}
+// works as follows:
+// - Just like with arrays, it holds key-value pairs (number: 42, value: 5) and sets a start marker.
+// - It then evaluates the function:
+//   - Due to the execution order, the stack will hold [number:, 42, value, 5]
+// - Finally, the stack is converted to an object.
+
+// If you're more comfortable with stack manipulation,
+// you can construct arrays and objects in more complex (but less practical) ways.
+// For example, using swap to reverse two values:
+
+[ 1, 2, swap ] // => [2, 1]
+{
+	[ key1:, key2:, my-val: ]
+	[ 42, true, null ]
+	push_zip // This interleaves the two arrays on the stack.
+} // => {key1: 42, key2: true, my-val: null}
+
+
+// 2. Binding, Scope and Module.
+
+// 2-1. Module Scope.
+
+// Each INTJ file is a module, and it has own scope.
+// The value is bound to the module if you bound them in the top level.
+// Also, the (almost) only way to interact between modules is
+// binding the value to expose, and importing the module.
+
+// Import keyword is '#' with parentheses.
+// In the parentheses, you need to list the modules you want to import.
+
+#(
+	"my_module.intj" // Import my_module.intj, bind to 'my_module'
+	mod2 = "my_module2.intj" // Import my_module2.intj, bind to 'mod2'
+	"also" // You can skip the extension '.intj'
+	sub = "subdir/sub_module.intj" // Import subdir/sub_module.intj, bind to 'sub'
+	sub = "subdir/file2.intj" // You can overwrite the module by importing again.
+	full_dir = "my_dir/" // Import all .intj files in my_dir/
+	_ = "my_dir/overwirte.intj" // Can use without prefix.
+)
+
+// After the import, you can access the module binding with prefix.
+// Default prefix is filename + '.'.
+// If you put name in the parentheses, you can use the name as a prefix.
+
+// For example, with the above import:
+
+my_module.a // Access 'a' in my_module.intj
+mod2.b // Access 'b' in my_module2.intj
+sub.print // In this case, print in one of 'subdir/sub_module.intj' or 'subdir/file2.intj'
+full_dir.some_fn // Access 'some_fn' in some .intj file in my_dir/
+
+// You can see there may be some ambiguity in the module name.
+// .intj does not have a strict module system, so you need to be careful with the module name.
+
+// Note that the standard library is also a module, and it's path is "" (empty string).
+// In default, the standard library is imported as follows for every code:
+
+#(
+	std = ""
+	_ = ""
+)
+
+// In other words, you can access the standard library with the prefix 'std.', or without prefix.
+
+// 2-2. Notes on Modules
+
+// * Modules are loaded only once.
+// If you import the same module multiple times, it will be loaded and executed only once.
+// Also, all importing modules share the same module instance.
+
+// * Imported modules are executed before the importing module, in most cases.
+// More specifically, the module code executed when #( ... ) is executed.
+// Sometimes the order may be different because of cycle.
+// (For exampe, A imports B imports A. In this case, at the point import A in B,
+// A is already loading, so import A will be ignored.)
+
+// * If there is cycle, some module is in 'not loaded' state.
+// the 'not loaded' state module is not accessible. For example,
+
+// A.intj
+#( "B" )
+f = B.f
+g = B.g
+
+// B.intj
+#( "A" )
+f = A.f
+g = A.g
+
+// and executed with 'intj run A.intj', when loading A, B is triggered to load.
+// Howerver, B also tries to import A, but it's cyclic.
+// In this case, the B's 'A' is shown as 'not loaded' state, and access to A, such as 'A.f'
+// will raise panic.
+// However, not invoking / accessing is ok for cyclic module. For example,
+
+// B.intj
+#( "A" )
+f = ( A.f )
+g = ( A.g 42 )
+
+// In this case, B is loaded, and A is in 'not loaded' state,
+// but B is not accessing to A in the loading time, so it's ok.
+
+// * Each module uses separated stacks.
+// For example,
+
+// A.intj
+"Hello, world!"
+#( "B" )
+// B.intj
+print
+
+// Someone expect that the output is 'Hello, world!', but it's not.
+// Because when B is started to loading, it'll create a new stack, and the stack is empty.
+
+// * The resulted module itself is a kind of object (key-value pair).
+
+// 2-3. Function, Scope, and Local Binding
+
+// Even the INTJ is stack based language, each function call create a
+// stack frame in the separated call stack.
+// If you bind some value in function block, it'll be bound in the frame scope.
+
+// For example,
+a = "Hello"
+f = (
+	a = 42
+	b = 3
+	+ a b // Push 42 and 3, and add them.
+)
+f // Call f
+// In this case, when f is called, it'll create a new stack frame with 'a' and 'b'.
+// The 'a' in the top level is not affected.
+
+// Also, if you create a function in the function, the function will capture some variables.
+// For example,
+a = 42
+f = (
+	b = 3
+	(
+		+ a b // Push 42 and 3, and add them.
+	)
+)
+f // call f, the result is a function
+invoke // Invoke the result of f.
+
+// 2-4. Documentation comments.
+
+// Before the assignment, you can put a documentation comment, beginning with '///'.
+// You can access the documentation not only in many tools, but also in runtime.
+// For example, the function 'help' will show the documentation of some binding:
+
+help "f" // Show the documentation of 'f'
+help ["a", "b", "c"] // Show the documentation of binding "c" which in "b" which in "a"
+
+// This is implemented some 'magics', using std's reflect and runtime features.
+
+// Note that the documentation is binding to the last assignment of the next line.
+// For example,
+
+/// Hello!
+1 2 3 a= b= 42 "boom"
+
+// In this case, the documentation is bound to 'a', not 'b'.
+
+// A. Standard Library
+
+
+// B. Standard IO Library, and Async
+
+
+// C. System-Dependent Features
+
+
+// X. Example Programs
+
+/// Fibonacci Sequence
+/// n -- fib(n)
+fibo = (
+	n= // Arguments
+	if (n < 2) (
+		n
+	) (
+		fibo - n 1 // fibo(n-1)
+		fibo - n 2 // fibo(n-2)
+		+ // Add them
+	)
+)
+help "fibo"
+print fibo 42
+
+/// Load environemnt path and execute
+/// file --- stdout stderr
+run_file = (file=
+	// Get environment path
+	env_path = getenv "PATH"
+	// Split the path
+	splitted = split env_path ":"
+	each splitted ( path= break=
+		// Construct the full path
+		full_path = join "/" [path, file]
+		if (file_exists full_path) (
+			// Execute the file
+			execute full_path
+			break
+		)
+	)
+)

@@ -1,0 +1,235 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "intj",
+	"patterns": [
+		{
+			"include": "#keywords"
+		},
+		{
+			"include": "#strings"
+		},
+		{
+			"include": "#comments"
+		},
+		{
+			"include": "#numbers"
+		},
+		{
+			"include": "#ident"
+		},
+		{
+			"include": "#errors"
+		}
+	],
+	"repository": {
+		"keywords": {
+			"patterns": [
+				{
+					"name": "keyword.control.intj",
+					"match": "\\b(if|while|for|return)\\b"
+				},
+				{
+					"name": "constant.language.null.intj",
+					"match": "\\b(null)\\b"
+				},
+				{
+					"name": "constant.language.boolean.true.intj",
+					"match": "\\b(true)\\b"
+				},
+				{
+					"name": "constant.language.boolean.false.intj",
+					"match": "\\b(false)\\b"
+				},
+				{
+					"name": "punctuation.brackets.open.intj",
+					"match": "[\\[\\({]"
+				},
+				{
+					"name": "punctuation.brackets.close.intj",
+					"match": "[\\]\\)}]"
+				},
+				{
+					"name": "punctuation.other.intj",
+					"match": "[,:]"
+				}
+			]
+		},
+		"comments": {
+			"patterns": [
+				{
+					"name": "comment.line.documentation.intj",
+					"match": "///.*"
+				},
+				{
+					"name": "comment.line.double-slash.intj",
+					"match": "//.*"
+				},
+				{
+					"name": "comment.block.intj",
+					"begin": "/\\*",
+					"end": "\\*/"
+				},
+				{
+					"name": "comment.line.shebang.intj",
+					"match": "^#!.*$"
+				}
+			]
+		},
+		"ident": {
+			"patterns": [
+				{
+					"name": "meta.function.definition.intj",
+					"match": "(`([^`]+)`)\\s*(=)\\s*(\\()",
+					"captures": {
+						"1": {
+							"name": "entity.name.function.intj"
+						},
+						"3": {
+							"name": "keyword.operator.intj"
+						},
+						"4": {
+							"name": "punctuation.brackets.open.intj"
+						}
+					}
+				},
+				{
+					"name": "meta.variable.definition.intj",
+					"match": "(`([^`]+)`)\\s*(=)(?=[\\s\\[\\](){},:\"'`#]|$)",
+					"captures": {
+						"1": {
+							"name": "entity.name.variable.intj"
+						},
+						"3": {
+							"name": "keyword.operator.intj"
+						}
+					}
+				},
+				{
+					"name": "meta.variable.definition.intj",
+					"match": "(`([^`]+)`)",
+					"captures": {
+						"1": {
+							"name": "entity.name.variable.intj"
+						}
+					}
+				},
+				{
+					"name": "meta.function.definition.intj",
+					"match": "([^\\s\\[\\](){},:\"'`#]+)\\s*(=)\\s*(\\()",
+					"captures": {
+						"1": {
+							"name": "entity.name.function.intj"
+						},
+						"2": {
+							"name": "keyword.operator.intj"
+						},
+						"3": {
+							"name": "punctuation.brackets.open.intj"
+						}
+					}
+				},
+				{
+					"name": "meta.variable.definition.intj",
+					"match": "([^\\s\\[\\](){},:\"'`#]+)\\s*(=)(?=[\\s\\[\\](){},:\"'`#]|$)",
+					"captures": {
+						"1": {
+							"name": "entity.name.variable.intj"
+						},
+						"2": {
+							"name": "keyword.operator.intj"
+						}
+					}
+				},
+				{
+					"name": "constant.language.symbol.intj",
+					"match": "([^\\s\\[\\](){},:\"'`#]+)\\s*(:)"
+				},
+				{
+					"name": "keyword.operator.intj",
+					"match": "[-+*/]+(?=$|[\\s\\[\\](){},:\"'`#])"
+				},
+				{
+					"name": "entity.name.variable.intj",
+					"match": "[^\\s\\[\\](){},:\"'`#]+"
+				}
+			]
+		},
+		"strings": {
+			"patterns": [
+				{
+					"name": "string.quoted.single.intj",
+					"begin": "'",
+					"end": "(')\\s*(:)?",
+					"startCaptures": {
+						"0": {
+							"name": "punctiation.definition.string.begin.intj"
+						}
+					},
+					"endCaptures": {
+						"1": {
+							"name": "punctiation.definition.string.end.intj"
+						},
+						"2": {
+							"name": "constant.language.symbol.intj"
+						}
+					},
+					"patterns": [
+						{
+							"name": "constant.character.escape.intj",
+							"match": "\\\\(u[0-9a-fA-F]{4}|x[0-9a-fA-F]{2}|[0-7]{1,3}|.)"
+						}
+					]
+				},
+				{
+					"name": "string.quoted.double.intj",
+					"begin": "\"",
+					"end": "(\")\\s*(:)?",
+					"startCaptures": {
+						"0": {
+							"name": "punctiation.definition.string.begin.intj"
+						}
+					},
+					"endCaptures": {
+						"1": {
+							"name": "punctiation.definition.string.end.intj"
+						},
+						"2": {
+							"name": "constant.language.symbol.intj"
+						}
+					},
+					"patterns": [
+						{
+							"name": "constant.character.escape.intj",
+							"match": "\\\\(u[0-9a-fA-F]{4}|x[0-9a-fA-F]{2}|[0-7]{1,3}|.)"
+						}
+					]
+				}
+			]
+		},
+		"numbers": {
+			"patterns": [
+				{
+					"name": "constant.numeric.decimal.intj",
+					"match": "\\b[+-]?\\d+(\\.\\d*)?([eE][+-]?\\d+)?\\b"
+				},
+				{
+					"name": "constant.numeric.hex.intj",
+					"match": "\\b0x[0-9a-fA-F]+\\b"
+				},
+				{
+					"name": "constant.numeric.oct.intj",
+					"match": "\\b0o[0-7]+\\b"
+				}
+			]
+		},
+		"errors": {
+			"patterns": [
+				{
+					"name": "invalid.illegal.intj",
+					"match": "`[^`]+"
+				}
+			]
+		}
+	},
+	"scopeName": "source.intj"
+}

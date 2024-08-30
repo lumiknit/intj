@@ -1,38 +1,40 @@
 use super::file::Pos;
 
+pub enum ExprListType {
+	/// Codes
+	Code,
+
+	/// Array
+	Array,
+
+	/// Object
+	Object,
+}
+
 pub enum ExprBase<E> {
-    /// Identifier
-    Id(String),
+	/// Identifier
+	Id(String),
 
-    /// Symbol literal
-    Sym(String),
+	/// Symbol literal
+	Sym(String),
 
-    /// Integer literal
-    Int(i64),
+	/// Integer literal
+	Int(i64),
 
-    /// Float literal
-    Float(f64),
+	/// Float literal
+	Float(f64),
 
-    /// String literal
-    String(String),
+	/// String literal
+	String(String),
 
-    /// Regular expression literal
-    Regexp(String),
+	/// Regular expression literal
+	Regexp(String),
 
-    /// Function
-    Fn(Vec<E>),
-
-    /// Array
-    Array(Vec<E>),
-
-    /// Object
-    Object(Vec<(String, E)>),
-
-    /// Comma / newline separator
-    Comma,
+	/// Expression List
+	List(ExprListType, Vec<E>),
 }
 
 pub struct Expr {
-    pub pos: Pos,
-    pub expr: ExprBase<Expr>,
+	pub pos: Pos,
+	pub expr: ExprBase<Expr>,
 }
