@@ -7,13 +7,16 @@ root = {
 
 body = _{ expr* }
 
-expr = _{ !comment_symbols ~ (line_separator | import | list | string_literal | number | ident_symbol | assign | ident) }
+expr = { docstring | line_comment | !comment_symbols ~ (line_separator | import | list | string_literal | number | ident_symbol | assign | ident) }
 
 // Seperator
 
-line_separator = {
-  ("," | "\n")+
+docstring          = {
+  (hidden_line_separator? ~ "///" ~ docstring_contents)+
 }
+docstring_contents = { until_eol }
+
+line_comment = _{ ("//" | "#!") ~ until_eol }
 
 // Import
 import       = { import_open ~ import_body ~ import_close }
@@ -60,17 +63,23 @@ common_assign          = @{ common_assign_contents ~ WHITESPACE* ~ "=" ~ !id_cha
 common_assign_contents = ${ non_op_id_char+ ~ (op_char+ ~ non_op_id_char+)* }
 assign_bq              = ${ back_quote ~ ident_contents_bq ~ back_quote ~ WHITESPACE* ~ "=" ~ !id_char }
 
-id_char        = _{ !reserved_char ~ ANY }
-non_op_id_char = _{ !(reserved_char | op_char) ~ ANY }
-op_char        = _{ "~" | "!" | "@" | "$" | "%" | "^" | "&" | "*" | "-" | "+" | "=" | "|" | "<" | ">" | "." | "?" | "\\" | "/" }
-reserved_char  = _{ ('\x00'..' ') | "(" | ")" | "{" | "}" | "[" | "]" | "," | ":" | "'" | "\"" | "`" | "#" }
-
 // Symbol mark
 symbol_mark = @{ ":" }
 
-ident_symbol = { ident ~ line_separator? ~ symbol_mark }
+ident_symbol = { ident ~ hidden_line_separator? ~ symbol_mark }
 
 // Reserved characters
+
+line_separator        =  {
+  ("," | "\n")+
+}
+hidden_line_separator = _{ ("," | "\n")+ }
+
+reserved_char = _{ ('\x00'..' ') | "(" | ")" | "{" | "}" | "[" | "]" | "," | ":" | "'" | "\"" | "`" | "#" }
+op_char       = _{ "~" | "!" | "@" | "$" | "%" | "^" | "&" | "*" | "-" | "+" | "=" | "|" | "<" | ">" | ";" | "." | "?" | "\\" | "/" }
+
+id_char        = _{ !reserved_char ~ ANY }
+non_op_id_char = _{ !(reserved_char | op_char) ~ ANY }
 
 fn_open      = { "(" }
 fn_close     = { ")" }
@@ -84,5 +93,9 @@ back_quote   = { "`" }
 
 comment_symbols = { "/*" | "*/" | "//" }
 
-COMMENT    = _{ ("/*" ~ (!"*/" ~ ANY)* ~ "*/") | (("//" | "#!") ~ (!"\n" ~ ANY)*) }
-WHITESPACE = _{ " " | "\t" | "\r" }
+// Common rules
+until_eol = _{ (!"\n" ~ ANY)* }
+
+// Predefined Rules
+COMMENT    = _{ ("/*" ~ (!"*/" ~ ANY)* ~ "*/") }
+WHITESPACE = _{ !"\n" ~ ('\x00'..' ') }
