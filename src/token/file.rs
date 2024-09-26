@@ -20,7 +20,7 @@ impl FileLoader for StdFileLoader {
 		match std::fs::read_to_string(name) {
 			Ok(contents) => Ok(File {
 				name: name.to_string(),
-				contents: contents,
+				contents,
 			}),
 			Err(e) => Err(e.to_string()),
 		}
@@ -55,6 +55,14 @@ impl File {
 }
 
 impl Pos {
+	pub fn new() -> Self {
+		Self {
+			pos: 0,
+			line: 1,
+			col: 1,
+		}
+	}
+
 	pub fn is_eof(&self, src: &str) -> bool {
 		self.pos >= src.len()
 	}

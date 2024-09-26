@@ -26,7 +26,7 @@ pub fn run(args: Args) {
 			// Read file with name 'target'
 			let contents = std::fs::read_to_string(&target).unwrap();
 			// Parse
-			let _ = crate::token::parser::parse_string(contents);
+			let _ = crate::token::parser::parse(target, contents);
 		}
 	}
 }
